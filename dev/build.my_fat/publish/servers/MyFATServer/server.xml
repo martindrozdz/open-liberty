@@ -1,0 +1,67 @@
+<!--
+    Copyright (c) 2017 IBM Corporation and others.
+    All rights reserved. This program and the accompanying materials
+    are made available under the terms of the Eclipse Public License 2.0
+    which accompanies this distribution, and is available at
+    http://www.eclipse.org/legal/epl-2.0/
+    
+    SPDX-License-Identifier: EPL-2.0
+   
+    Contributors:
+        IBM Corporation - initial API and implementation
+ -->
+<server>
+
+	<featureManager>
+		<feature>servlet-3.1</feature>
+		<feature>componenttest-1.0</feature>
+		<feature>transportSecurity-1.0</feature>
+		<feature>wasJmsServer-1.0</feature>
+		<feature>wasJmsClient-2.0</feature>
+		<feature>jndi-1.0</feature>
+	</featureManager>
+
+
+	<keyStore id="defaultKeyStore" password="yourPassword" />
+
+  <!-- ... other configuration -->
+    <messagingEngine>
+       <queue id="QUEUE1" />
+    </messagingEngine>
+ 
+    <jmsQueueConnectionFactory jndiName="jms/JmsFactory">
+        <properties.wasJms remoteServerAddress="localhost:7276:BootStrapBasicMessaging" />
+    </jmsQueueConnectionFactory>
+ 
+    <jmsQueue id="simpleJmsQueue" jndiName="jms/JmsQueue">
+        <properties.wasJms queueName="QUEUE1" />
+    </jmsQueue>
+
+ <!-- ... JMS configuration --> 
+ <jmsActivationSpec id="embedded-messaging-engine-open-liberty/JmsMessageReader">
+        <properties.wasJms
+                destinationRef="simpleJmsQueue"
+                destinationType="javax.jms.Queue"
+                remoteServerAddress="localhost:7276:BootstrapBasicMessaging"/>
+ </jmsActivationSpec>
+
+	<!--<keyStore id="defaultKeyStore" updateTrigger="polled" fileBased="true"
+		readOnly="true" type="PKCS12" />-->
+
+	<!--      Server SSL configuration -->
+
+	<!--    <sslDefault outboundSSLRef="mySSLConfig" />
+    <ssl id="defaultSSLConfig" keyStoreRef="defaultKeyStore"
+	trustStoreRef="defaultTrustStore" trustDefaultCerts="true"/>
+	<keyStore id="defaultKeyStore" location="key.p12" type="PKCS12"
+	password="password"/>
+	<keyStore id="defaulTrustStore" location="trust.p12" type="PKCS12"
+	password="password"/>-->
+
+	<!--	<keyStore id="defaultKeyStore" updateTrigger="polled"
+	location="http://domain.tld/keystore/key.p12" fileBased="true"
+	readOnly="true" type="PKCS12"/>
+-->
+	<include location="../fatTestPorts.xml" />
+	<application location="app2.war" />
+</server>
