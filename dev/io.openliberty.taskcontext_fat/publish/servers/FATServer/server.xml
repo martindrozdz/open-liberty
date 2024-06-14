@@ -19,6 +19,6 @@
     
     <include location="../fatTestPorts.xml"/>
     
-    <application location="app1.war" />
+    <application location="test-servlet.war" />
 
 </server>
