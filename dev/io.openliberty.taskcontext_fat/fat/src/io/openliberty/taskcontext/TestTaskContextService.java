@@ -28,6 +28,8 @@ import test.servlet.TestTaskContextServiceServlet;
 @RunWith(FATRunner.class)
 public class TestTaskContextService extends FATServletClient {
 	public static final String APP_NAME = "test-servlet";
+	private static final String BUNDLE_SYMBOLIC_NAME = "test.bundle";
+	private static final String FEATURE_SYMBOLIC_NAME = "test.feature";
     @Server("FATServer")
     @TestServlet(servlet = TestTaskContextServiceServlet.class, contextRoot = APP_NAME)
     public static LibertyServer server;
@@ -35,11 +37,15 @@ public class TestTaskContextService extends FATServletClient {
     @BeforeClass
     public static void setUp() throws Exception {
         ShrinkHelper.defaultApp(server, APP_NAME, TestTaskContextServiceServlet.class.getPackage().getName());
+        server.installUserBundle(BUNDLE_SYMBOLIC_NAME);
+        server.installUserFeature(FEATURE_SYMBOLIC_NAME);
         server.startServer();
     }
 
     @AfterClass
     public static void tearDown() throws Exception {
         server.stopServer();
+        server.uninstallUserFeature(FEATURE_SYMBOLIC_NAME);
+        server.uninstallUserBundle(BUNDLE_SYMBOLIC_NAME);
     }
 }

@@ -20,6 +20,7 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import componenttest.app.FATServlet;
+import test.bundle.TestService;
 
 @SuppressWarnings("serial")
 @WebServlet("/TTCSS")
@@ -33,5 +34,10 @@ public class TestTaskContextServiceServlet extends FATServlet {
     @Test
     public void testHttpServletRequest(HttpServletRequest request, HttpServletResponse resp) throws Exception {
         resp.getWriter().println("Running test method 'testHttpServletRequest'");
+    }
+    
+    @Test
+    public void testTestServiceIsActivated() {
+        Assert.assertNotSame("TestService should have been activated", 0, TestService.getActivatedCount());
     }
 }
