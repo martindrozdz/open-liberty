@@ -38,6 +38,6 @@ public class TestTaskContextServiceServlet extends FATServlet {
     
     @Test
     public void testTestServiceIsActivated() {
-        Assert.assertNotSame("TestService should have been activated", 0, TestService.getActivatedCount());
+        Assert.assertNotNull("TestService should have been activated", TestService.getInstance());
     }
 }
