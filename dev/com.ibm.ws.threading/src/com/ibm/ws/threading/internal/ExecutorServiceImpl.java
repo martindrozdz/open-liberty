@@ -23,6 +23,7 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 import java.util.concurrent.Phaser;
 import java.util.concurrent.RejectedExecutionException;
@@ -50,6 +51,8 @@ import com.ibm.ws.kernel.service.util.AvailableProcessorsListener;
 import com.ibm.ws.kernel.service.util.CpuInfo;
 import com.ibm.ws.threading.ThreadQuiesce;
 import com.ibm.wsspi.threading.ExecutorServiceTaskInterceptor;
+import com.ibm.wsspi.threading.TaskContext;
+import com.ibm.wsspi.threading.TaskContextService;
 import com.ibm.wsspi.threading.WSExecutorService;
 
 /**
@@ -58,8 +61,8 @@ import com.ibm.wsspi.threading.WSExecutorService;
 @Component(name = "com.ibm.ws.threading",
            configurationPolicy = ConfigurationPolicy.REQUIRE,
            property = "service.vendor=IBM",
-           service = { java.util.concurrent.ExecutorService.class, com.ibm.wsspi.threading.WSExecutorService.class })
-public final class ExecutorServiceImpl implements WSExecutorService, ThreadQuiesce, AvailableProcessorsListener {
+           service = { ExecutorService.class, WSExecutorService.class, TaskContextService.class })
+public final class ExecutorServiceImpl implements WSExecutorService, ThreadQuiesce, AvailableProcessorsListener, TaskContextService {
 
     private static final TraceComponent tc = Tr.register(ExecutorServiceImpl.class);
 
@@ -594,5 +597,10 @@ public final class ExecutorServiceImpl implements WSExecutorService, ThreadQuies
                 createExecutor();
             }
         }
+    }
+
+    @Override
+    public TaskContext getTaskContext() {
+        return null;
     }
 }

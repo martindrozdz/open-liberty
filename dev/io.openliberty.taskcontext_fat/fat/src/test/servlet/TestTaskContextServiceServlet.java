@@ -4,7 +4,7 @@
  * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-2.0/
- * 
+ *
  * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
@@ -35,9 +35,14 @@ public class TestTaskContextServiceServlet extends FATServlet {
     public void testHttpServletRequest(HttpServletRequest request, HttpServletResponse resp) throws Exception {
         resp.getWriter().println("Running test method 'testHttpServletRequest'");
     }
-    
+
     @Test
     public void testTestServiceIsActivated() {
         Assert.assertNotNull("TestService should have been activated", TestService.getInstance());
+    }
+
+    @Test
+    public void testTestServiceHasBeenInjectedWithTaskContextService() {
+        Assert.assertEquals("TestService should have exactly one TaskContextService", 1, TestService.getInstance().contextProviders.size());
     }
 }
