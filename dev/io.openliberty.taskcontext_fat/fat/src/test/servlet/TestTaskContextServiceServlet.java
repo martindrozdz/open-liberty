@@ -12,11 +12,15 @@
  *******************************************************************************/
 package test.servlet;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.junit.Assert;
 import org.junit.Test;
 
 import componenttest.app.FATServlet;
@@ -28,7 +32,7 @@ public class TestTaskContextServiceServlet extends FATServlet {
     @Test
     public void basicTest() throws Exception {
         System.out.println("Test is running in an HttpServlet");
-        Assert.assertTrue("Can also use JUnit assertions", true);
+        assertTrue("Can also use JUnit assertions", true);
     }
 
     @Test
@@ -38,11 +42,16 @@ public class TestTaskContextServiceServlet extends FATServlet {
 
     @Test
     public void testTestServiceIsActivated() {
-        Assert.assertNotNull("TestService should have been activated", TestService.getInstance());
+        assertNotNull("TestService should have been activated", TestService.getInstance());
     }
 
     @Test
     public void testTestServiceHasBeenInjectedWithTaskContextService() {
-        Assert.assertEquals("TestService should have exactly one TaskContextService", 1, TestService.getInstance().contextProviders.size());
+        assertEquals("TestService should have exactly one TaskContextService", 1, TestService.getInstance().contextProviders.size());
+    }
+
+    @Test
+    public void testTaskContextNotAvailableInServlet() {
+        assertNull("TaskContext should be null when retrieved from a servlet", TestService.getInstance().contextProviders.iterator().next().getTaskContext());
     }
 }

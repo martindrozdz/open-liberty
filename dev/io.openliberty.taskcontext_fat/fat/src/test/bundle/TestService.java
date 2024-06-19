@@ -22,7 +22,10 @@ public class TestService implements ExecutorServiceTaskInterceptor {
     private static final AtomicReference<TestService> lastInstance = new AtomicReference<>();
     public static final ThreadLocal<TaskContext> lastContext = new ThreadLocal<>();
 
-    /** This should always contain all the available TaskContextServices */
+    /**
+     * The Service Context Registry (from Apache Felix at time of writing)
+     * should keep this populated with all the available TaskContextServices.
+     */
     @Reference
     public volatile Collection<TaskContextService> contextProviders;
 
@@ -31,7 +34,7 @@ public class TestService implements ExecutorServiceTaskInterceptor {
     }
 
     @Activate
-    public TestService() {
+    protected void activate() {
         System.out.println("### Activate TestService#" + instance);
         lastInstance.set(this);
     }
