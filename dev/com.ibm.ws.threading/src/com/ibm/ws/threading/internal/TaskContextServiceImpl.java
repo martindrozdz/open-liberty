@@ -1,0 +1,35 @@
+/*
+ * Copyright (c) 2024 IBM Corporation and others.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
+ * which accompanies this distribution, and is available at
+ * http://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
+ */
+package com.ibm.ws.threading.internal;
+
+import org.osgi.service.component.annotations.Component;
+
+import com.ibm.ws.threading.TaskContextFactory;
+import com.ibm.wsspi.threading.TaskContext;
+import com.ibm.wsspi.threading.TaskContext.Type;
+import com.ibm.wsspi.threading.TaskContextService;
+
+@Component
+public class TaskContextServiceImpl implements TaskContextFactory, TaskContextService {
+    private final ThreadLocal<TaskContext> ctx = new ThreadLocal<>();
+
+    @Override
+    public TaskContext getTaskContext() {
+        return ctx.get();
+    }
+
+    @Override
+    public TaskContextSetter createTaskContext(Type type) {
+        assert null == ctx.get();
+        TaskContextImpl tc = new TaskContextImpl(type);
+        ctx.set(tc);
+        return tc;
+    }
+}

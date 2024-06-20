@@ -17,5 +17,5 @@ public interface TaskContextService {
      *         <code>null</code> if no task is being submitted
      *         or if no context is available for the current task.
      */
-    public TaskContext getTaskContext();
+    TaskContext getTaskContext();
 }
