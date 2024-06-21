@@ -9,6 +9,8 @@
  *******************************************************************************/
 package com.ibm.ws.http.dispatcher.internal.channel;
 
+import static java.util.Objects.requireNonNull;
+
 import java.io.Closeable;
 import java.io.IOException;
 import java.io.InputStream;
@@ -64,7 +66,6 @@ import com.ibm.wsspi.http.ee8.Http2InboundConnection;
 import com.ibm.wsspi.tcpchannel.TCPConnectionContext;
 import com.ibm.wsspi.threading.TaskContext;
 import com.ibm.wsspi.threading.TaskContext.Key;
-import com.ibm.wsspi.threading.WorkContext;
 
 /**
  * Connection link object that the HTTP dispatcher provides to CHFW
@@ -459,15 +460,13 @@ public class HttpDispatcherLink extends InboundApplicationLink implements HttpIn
     private void wrapHandlerAndExecute(Runnable handler) {
         // wrap handler and execute
         TaskWrapper taskWrapper = new TaskWrapper(handler, this);
-        HttpDispatcher.getTaskContextFactory().map(tcf -> tcf.createTaskContext(TaskContext.Type.HTTP)).ifPresent(ctx -> ctx.set(Key.INBOUND_HOSTNAME,
-                                                                                                                                 this.request.getVirtualHost()).set(null, LINK_ID));
-        if (HttpDispatcher.isAnyInterceptorActive()) {
-
-            wc.put(WorkContext.INBOUND_PORT, Integer.toString(this.request.getVirtualPort()));
-            wc.put(WorkContext.URI, this.request.getURI());
-            wc.put(WorkContext.METHOD_NAME, this.request.getMethod());
-            wc.put(WorkContext.INBOUND_HOSTNAME, this.request.getVirtualHost());
-        }
+        HttpDispatcher.getTaskContextFactory().map(tcf -> tcf.createTaskContext(TaskContext.Type.HTTP)).ifPresent(ctx -> {
+            ctx.set(Key.INBOUND_HOSTNAME, requireNonNull(this.request.getVirtualHost(), "Virtual Host name should not be null"));
+            ctx.set(Key.INBOUND_PORT, Integer.toString(this.request.getVirtualPort()));
+            ctx.set(Key.URI, requireNonNull(this.request.getURI(), "URI should not be null"));
+            ctx.set(Key.METHOD_NAME, requireNonNull(this.request.getMethod(), "Method name should not be null"));
+            //TODO Do something with ctx
+        });
 
         WorkClassifier workClassifier = HttpDispatcher.getWorkClassifier();
         if (workClassifier != null) {
