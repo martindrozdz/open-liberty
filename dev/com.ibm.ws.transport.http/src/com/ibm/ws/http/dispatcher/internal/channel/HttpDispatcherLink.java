@@ -62,6 +62,9 @@ import com.ibm.wsspi.http.channel.values.StatusCodes;
 import com.ibm.wsspi.http.ee7.HttpInboundConnectionExtended;
 import com.ibm.wsspi.http.ee8.Http2InboundConnection;
 import com.ibm.wsspi.tcpchannel.TCPConnectionContext;
+import com.ibm.wsspi.threading.TaskContext;
+import com.ibm.wsspi.threading.TaskContext.Key;
+import com.ibm.wsspi.threading.WorkContext;
 
 /**
  * Connection link object that the HTTP dispatcher provides to CHFW
@@ -456,6 +459,15 @@ public class HttpDispatcherLink extends InboundApplicationLink implements HttpIn
     private void wrapHandlerAndExecute(Runnable handler) {
         // wrap handler and execute
         TaskWrapper taskWrapper = new TaskWrapper(handler, this);
+        HttpDispatcher.getTaskContextFactory().map(tcf -> tcf.createTaskContext(TaskContext.Type.HTTP)).ifPresent(ctx -> ctx.set(Key.INBOUND_HOSTNAME,
+                                                                                                                                 this.request.getVirtualHost()).set(null, LINK_ID));
+        if (HttpDispatcher.isAnyInterceptorActive()) {
+
+            wc.put(WorkContext.INBOUND_PORT, Integer.toString(this.request.getVirtualPort()));
+            wc.put(WorkContext.URI, this.request.getURI());
+            wc.put(WorkContext.METHOD_NAME, this.request.getMethod());
+            wc.put(WorkContext.INBOUND_HOSTNAME, this.request.getVirtualHost());
+        }
 
         WorkClassifier workClassifier = HttpDispatcher.getWorkClassifier();
         if (workClassifier != null) {
@@ -760,7 +772,7 @@ public class HttpDispatcherLink extends InboundApplicationLink implements HttpIn
      * It is the value of the part before ":" in the Host header value, if any,
      * or the resolved server name, or the server IP address.
      *
-     * @param request        the inbound request
+     * @param request the inbound request
      * @param remoteHostAddr the requesting client IP address
      */
     @Override
@@ -791,8 +803,8 @@ public class HttpDispatcherLink extends InboundApplicationLink implements HttpIn
      * the part after ":" in the Host header value, if any, or the server port
      * where the client connection was accepted on.
      *
-     * @param request        the inbound request
-     * @param localPort      the server port where the client connection was accepted on.
+     * @param request the inbound request
+     * @param localPort the server port where the client connection was accepted on.
      * @param remoteHostAddr the requesting client IP address
      */
     @Override
@@ -1273,7 +1285,7 @@ public class HttpDispatcherLink extends InboundApplicationLink implements HttpIn
                 }
 
                 if (ic.decrementNeeded.compareAndSet(true, false)) {
-                        //  ^ set back to false in case close is called more than once after destroy is called (highly unlikely)
+                    //  ^ set back to false in case close is called more than once after destroy is called (highly unlikely)
                     if (TraceComponent.isAnyTracingEnabled() && tc.isDebugEnabled()) {
                         Tr.debug(tc, "decrementNeeded is true: decrement active connection");
                     }
@@ -1348,23 +1360,24 @@ public class HttpDispatcherLink extends InboundApplicationLink implements HttpIn
         VirtualConnection vc = link.getVirtualConnection();
         H2InboundLink h2Link = new H2InboundLink(channel, vc, getTCPConnectionContext());
         boolean bodyReadAndQueued = false;
-        if(this.isc != null) {
-            if(this.isc.isIncomingBodyExpected() && !this.isc.isBodyComplete()){
+        if (this.isc != null) {
+            if (this.isc.isIncomingBodyExpected() && !this.isc.isBodyComplete()) {
                 if (TraceComponent.isAnyTracingEnabled() && tc.isDebugEnabled()) {
                     Tr.debug(tc, "Body needed for request. Queueing data locally before upgrade.");
                 }
                 HttpInputStreamImpl body = this.request.getBody();
                 body.setupChannelMultiRead();
                 byte[] inBytes = new byte[1024];
-                try{
+                try {
                     if (TraceComponent.isAnyTracingEnabled() && tc.isDebugEnabled()) {
                         Tr.debug(tc, "Starting request read loop.");
                     }
-                    for (int n; (n = body.read(inBytes)) != -1;) {}
+                    for (int n; (n = body.read(inBytes)) != -1;) {
+                    }
                     if (TraceComponent.isAnyTracingEnabled() && tc.isDebugEnabled()) {
                         Tr.debug(tc, "Finished request read loop.");
                     }
-                }catch(Exception e){
+                } catch (Exception e) {
                     if (TraceComponent.isAnyTracingEnabled() && tc.isDebugEnabled()) {
                         Tr.debug(tc, "Got exception reading request and queueing up data. Can't handle request upgrade to HTTP2.", e);
                     }
@@ -1374,12 +1387,12 @@ public class HttpDispatcherLink extends InboundApplicationLink implements HttpIn
                 }
                 body.setReadFromChannelComplete();
                 bodyReadAndQueued = true;
-            }else{
+            } else {
                 if (TraceComponent.isAnyTracingEnabled() && tc.isDebugEnabled()) {
                     Tr.debug(tc, "No body needed for request. Continuing upgrade as normal.");
                 }
             }
-        }else {
+        } else {
             if (TraceComponent.isAnyTracingEnabled() && tc.isDebugEnabled()) {
                 Tr.debug(tc, "Failed to get isc, Null value received which could cause issues expecting data. Continuing upgrade as normal.");
             }
@@ -1398,7 +1411,7 @@ public class HttpDispatcherLink extends InboundApplicationLink implements HttpIn
             // A problem occurred with the connection start up, a trace message will be issued from waitForConnectionInit()
             vc.getStateMap().put(h2InitError, true);
         }
-        if(bodyReadAndQueued)
+        if (bodyReadAndQueued)
             isc.setBodyComplete();
         return rc;
     }
