@@ -28,6 +28,7 @@ import org.junit.Test;
 
 import com.ibm.wsspi.threading.TaskContext;
 import com.ibm.wsspi.threading.TaskContext.Key;
+import com.ibm.wsspi.threading.TaskContext.Type;
 
 public class TaskContextServiceTest {
 
@@ -50,6 +51,8 @@ public class TaskContextServiceTest {
         assertThat(tc, is(not(nullValue())));
         assertThat(tc.type(), is(HTTP));
         assertThat(tc.keys().findFirst(), is(Optional.empty()));
+        TaskContext tc2 = service.getTaskContext();
+        assertThat(tc, is(tc2));
     }
 
     @Test
@@ -65,5 +68,21 @@ public class TaskContextServiceTest {
         assertThat(tc.get(APP_NAME), is("test app"));
         assertThat(tc.get(BEAN_NAME), is("test bean"));
         assertThat(tc.get(MODULE_NAME), is("test module"));
+    }
+
+    @Test
+    public void testZappingContext() {
+        service.createTaskContext(Type.IIOP)
+                .set(Key.INBOUND_HOSTNAME, "localhost")
+                .set(Key.INBOUND_PORT, "2809");
+        service.zapTaskContext();
+        assertThat(service.getTaskContext(), is(nullValue()));
+        testCreatingContext();
+    }
+
+    @Test(expected = IllegalStateException.class)
+    public void testDoubleCreate() {
+        service.createTaskContext(HTTP);
+        service.createTaskContext(HTTP);
     }
 }

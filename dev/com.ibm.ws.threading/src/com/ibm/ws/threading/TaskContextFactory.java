@@ -18,14 +18,32 @@ import com.ibm.wsspi.threading.TaskContext.Key;
 public interface TaskContextFactory {
     interface TaskContextSetter {
         /**
-         * Set a piece of context information for a task, if it is not already set.
+         * Set a piece of context information for a task, if it is not already
+         * set.
          *
-         * @param key represents the type of information being supplied
-         * @param value the piece of context information, must not be <code>null</code>
+         * @param key
+         *            represents the type of information being supplied
+         * @param value
+         *            the piece of context information, must not be
+         *            <code>null</code>
          * @return this object
          */
         TaskContextSetter set(Key key, String value);
     }
 
+    /**
+     * Create the task context for the current thread.
+     *
+     * @param type
+     *            the type of context
+     * @return an interface that allows the context to be populated
+     * @throws IllegalStateException
+     *             if a task context exists for this thread
+     */
     TaskContextSetter createTaskContext(TaskContext.Type type);
+
+    /**
+     * Clear the task context from the current thread.
+     */
+    void zapTaskContext();
 }

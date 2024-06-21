@@ -9,6 +9,8 @@
  */
 package com.ibm.ws.threading.internal;
 
+import java.util.Optional;
+
 import org.osgi.service.component.annotations.Component;
 
 import com.ibm.ws.threading.TaskContextFactory;
@@ -27,9 +29,16 @@ public class TaskContextServiceImpl implements TaskContextFactory, TaskContextSe
 
     @Override
     public TaskContextSetter createTaskContext(Type type) {
-        assert null == ctx.get();
+        Optional.ofNullable(ctx.get()).ifPresent(tc -> {
+            throw new IllegalStateException("Cannot create context if it already exists. Existing context of type " + tc.type() + " must be zapped first.");
+        });
         TaskContextImpl tc = new TaskContextImpl(type);
         ctx.set(tc);
         return tc;
+    }
+
+    @Override
+    public void zapTaskContext() {
+        ctx.remove();
     }
 }
