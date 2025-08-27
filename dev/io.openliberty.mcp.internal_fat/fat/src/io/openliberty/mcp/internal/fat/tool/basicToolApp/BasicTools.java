@@ -149,5 +149,4 @@ public class BasicTools {
     public boolean toggle(@ToolArg(name = "value", description = "boolean value") boolean value) {
         return !value;
     }
-
 }
